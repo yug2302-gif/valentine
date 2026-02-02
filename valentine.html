@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>For You 💖</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .slide {
+      position: absolute;
+      opacity: 0;
+      transform: scale(0.95);
+      transition: all 0.6s ease;
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      max-width: 400px;
+      width: 90%;
+      pointer-events: none;
+    }
+
+    .slide.active {
+      opacity: 1;
+      transform: scale(1);
+      z-index: 2;
+      pointer-events: auto;
+    }
+
+    .img-wrapper {
+      width: 100%;
+      height: 240px;
+      border-radius: 15px;
+      margin-bottom: 15px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fef0f0;
+    }
+
+    .img-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 0;
+      margin: 0;
+    }
+
+    h2 { color: #ff4d6d; margin-bottom: 15px; font-size: 1.2rem; }
+    p { color: #555; margin-bottom: 15px; }
+
+    .options { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+
+    .opt-btn {
+      padding: 12px 22px; border: 2px solid #ff4d6d; border-radius: 25px;
+      font-size: 15px; cursor: pointer; background: white; color: #ff4d6d;
+      transition: all 0.25s ease;
+    }
+    .opt-btn:hover { background: #ff4d6d; color: white; transform: scale(1.05); }
+    .opt-btn.correct { background: #2ecc71; border-color: #2ecc71; color: white; transform: scale(1.08); }
+    .opt-btn.wrong { background: #e74c3c; border-color: #e74c3c; color: white; opacity: 0.7; }
+    .opt-btn:disabled { cursor: default; }
+    .opt-btn:disabled:hover { transform: none; }
+
+    button.next-btn {
+      padding: 12px 22px; border: none; border-radius: 25px; font-size: 16px;
+      cursor: pointer; background: #ff4d6d; color: white; margin-top: 15px;
+      transition: transform 0.2s; display: none;
+    }
+    button.next-btn.show { display: inline-block; }
+    button.next-btn:hover { transform: scale(1.1); }
+
+    .reaction { margin-top: 10px; font-size: 0.95rem; color: #888; min-height: 24px; }
+
+    .ready-btn {
+      padding: 14px 28px; border: none; border-radius: 25px; font-size: 17px;
+      cursor: pointer; margin: 10px; transition: all 0.25s ease;
+    }
+    .ready-btn:hover { transform: scale(1.1); }
+    .ready-yes { background: #ff4d6d; color: white; }
+    .ready-no { background: #ddd; color: #333; }
+
+    .sorry-btn {
+      padding: 14px 28px; border: none; border-radius: 25px; font-size: 17px;
+      cursor: pointer; background: #ff4d6d; color: white; margin-top: 15px;
+      transition: all 0.25s ease;
+    }
+    .sorry-btn:hover { transform: scale(1.1); }
+
+    .val-yes {
+      padding: 14px 28px; border: none; border-radius: 25px; font-size: 17px;
+      cursor: pointer; background: #ff4d6d; color: white; margin: 10px;
+      transition: transform 0.2s;
+    }
+    .val-yes:hover { transform: scale(1.1); }
+
+    .val-no {
+      padding: 14px 28px; border: none; border-radius: 25px; font-size: 17px;
+      cursor: pointer; background: #ddd; color: #333; margin: 10px;
+      position: static;
+    }
+
+    .val-no.escaped {
+      position: fixed;
+      z-index: 999;
+      margin: 0;
+      /* no transition so it teleports instantly */
+      transition: none !important;
+    }
+
+    .val-btn-wrapper {
+      display: flex; justify-content: center; align-items: center;
+      gap: 10px; flex-wrap: wrap; min-height: 60px;
+    }
+
+    .dots {
+      position: absolute; bottom: 20px; display: flex; gap: 8px; z-index: 10;
+    }
+    .dot {
+      width: 10px; height: 10px; background: rgba(255,255,255,0.5);
+      border-radius: 50%; transition: background 0.3s;
+    }
+    .dot.active { background: white; }
+
+    .heart-float {
+      position: fixed; font-size: 24px;
+      animation: floatUp 3s ease-in forwards;
+      pointer-events: none; z-index: 100;
+    }
+    @keyframes floatUp {
+      0%   { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateY(-400px) scale(1.5); }
+    }
+  </style>
+</head>
+<body>
+
+<audio id="music" loop>
+  <source src="audio.mp3" type="audio/mpeg">
+</audio>
+
+<!-- SLIDE 1 -->
+<div class="slide active" id="slide-0">
+  <div class="img-wrapper"><img src="image1.jpeg" alt=""></div>
+  <h2>What do I like eating the most?</h2>
+  <div class="options">
+    <button class="opt-btn" onclick="answer(0, this, 'other')">Samosa Cheese Toast</button>
+    <button class="opt-btn" onclick="answer(0, this, 'pavbhaji')">Pav Bhaji</button>
+    <button class="opt-btn" onclick="answer(0, this, 'you')">You</button>
+  </div>
+  <div class="reaction" id="react-0"></div>
+  <button class="next-btn" id="next-0" onclick="nextSlide()">Next 💖</button>
+</div>
+
+<!-- SLIDE 2 -->
+<div class="slide" id="slide-1">
+  <div class="img-wrapper"><img src="image2.jpeg" alt=""></div>
+  <h2>What do I love doing with you the most? 😊</h2>
+  <div class="options">
+    <button class="opt-btn" onclick="answer(1, this, 'allwrong')">Roast</button>
+    <button class="opt-btn" onclick="answer(1, this, 'allwrong')">Irritate</button>
+    <button class="opt-btn" onclick="answer(1, this, 'allwrong')">Kiss</button>
+  </div>
+  <div class="reaction" id="react-1"></div>
+  <button class="next-btn" id="next-1" onclick="nextSlide()">Next 💕</button>
+</div>
+
+<!-- SLIDE 3 -->
+<div class="slide" id="slide-2">
+  <div class="img-wrapper"><img src="image3.png" alt=""></div>
+  <h2>What's my favorite song? Atleast 1 point toh mile 🎵</h2>
+  <div class="options">
+    <button class="opt-btn" onclick="answer(2, this, 'allwrong2')">Tum se</button>
+    <button class="opt-btn" onclick="answer(2, this, 'allwrong2')">Tum ho toh ✨</button>
+    <button class="opt-btn" onclick="answer(2, this, 'allwrong2')">Khubsoorat</button>
+  </div>
+  <div class="reaction" id="react-2"></div>
+  <button class="next-btn" id="next-2" onclick="nextSlide()">Next 💫</button>
+</div>
+
+<!-- SLIDE 4: Ready? -->
+<div class="slide" id="slide-3">
+  <h2 style="font-size:1.4rem;">Are you ready for the toughest question? 👀💘</h2>
+  <p style="color:#999;">No going back after this...</p>
+  <div>
+    <button class="ready-btn ready-yes" onclick="goToSlide(5)">Yes, I'm ready 😳</button>
+    <button class="ready-btn ready-no" onclick="goToSlide(4)">No 😅</button>
+  </div>
+</div>
+
+<!-- SLIDE 5: Sorry -->
+<div class="slide" id="slide-4">
+  <h2 style="font-size:1.3rem;">Sorry... sab jagah chote don ka nahi chalega 😤😂</h2>
+  <p style="color:#999;">Ab chalo, face karo 💪</p>
+  <button class="sorry-btn" onclick="goToSlide(5)">Fine, let's go 😳💖</button>
+</div>
+
+<!-- SLIDE 6: Valentine -->
+<div class="slide" id="slide-5">
+  <h2 style="font-size:1.5rem;">Will you be my Valentine? 💖</h2>
+  <p>You make my world brighter just by being in it 🥰</p>
+  <div class="val-btn-wrapper" id="valBtnWrapper">
+    <button class="val-yes" onclick="yesClicked()">Yes 💕</button>
+    <button class="val-no" id="valNo">No 😅</button>
+  </div>
+</div>
+
+<!-- Dots -->
+<div class="dots" id="dotsContainer">
+  <div class="dot active"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+</div>
+
+<script>
+  let current = 0;
+  const slides = document.querySelectorAll('.slide');
+  const dots = document.querySelectorAll('.dot');
+  const music = document.getElementById('music');
+  let musicStarted = false;
+  let noActivated = false;
+  let noAttempts = 0;
+
+  function startMusic() {
+    if (musicStarted) return;
+    music.volume = 0.4;
+    music.play().then(() => { musicStarted = true; })
+      .catch(err => { console.log("Audio play blocked or file not found:", err); });
+  }
+
+  function activateNoButton() {
+    if (noActivated) return;
+    noActivated = true;
+    const btn = document.getElementById('valNo');
+
+    // mouseover — fires instantly on hover, teleports the button
+    btn.addEventListener('mouseenter', escapeNo);
+    // click/touchstart — for mobile
+    btn.addEventListener('touchstart', escapeNo, { passive: true });
+    btn.addEventListener('click', escapeNo);
+  }
+
+  function escapeNo(e) {
+    e.preventDefault && e.preventDefault();
+    const btn = document.getElementById('valNo');
+    if (!btn) return;
+
+    noAttempts++;
+
+    // After 4 attempts, hide completely
+    if (noAttempts >= 4) {
+      btn.style.display = 'none';
+      return;
+    }
+
+    // Add escaped class to break out of the card
+    if (!btn.classList.contains('escaped')) {
+      btn.classList.add('escaped');
+    }
+
+    // Teleport instantly to a random position
+    const maxX = window.innerWidth - 140;
+    const maxY = window.innerHeight - 70;
+    const x = Math.floor(Math.random() * maxX);
+    const y = Math.floor(Math.random() * maxY);
+    btn.style.left = x + 'px';
+    btn.style.top = y + 'px';
+  }
+
+  function answer(slideIdx, btn, type) {
+    startMusic();
+    const container = btn.parentElement;
+    const allBtns = container.querySelectorAll('.opt-btn');
+    const react = document.getElementById(`react-${slideIdx}`);
+
+    allBtns.forEach(b => {
+      b.disabled = true;
+      if (b !== btn) b.style.opacity = '0.5';
+    });
+
+    if (slideIdx === 0) {
+      if (type === 'pavbhaji') {
+        btn.classList.add('correct');
+        react.textContent = "Yes the food before my favorite dessert 😏";
+      } else if (type === 'you') {
+        btn.classList.add('wrong');
+        react.textContent = "It's actually Pav Bhaji… with you 😜";
+        setTimeout(() => {
+          allBtns.forEach(b => {
+            if (b.textContent.trim() === 'Pav Bhaji') { b.classList.add('correct'); b.style.opacity = '1'; }
+          });
+        }, 600);
+      } else {
+        btn.classList.add('wrong');
+        react.textContent = "Yes the food before my favorite dessert 😏";
+        setTimeout(() => {
+          allBtns.forEach(b => {
+            if (b.textContent.trim() === 'Pav Bhaji') { b.classList.add('correct'); b.style.opacity = '1'; }
+          });
+        }, 600);
+      }
+    }
+
+    if (slideIdx === 1) {
+      btn.classList.add('wrong');
+      react.textContent = "It's all of the above 😂🤷";
+      setTimeout(() => {
+        allBtns.forEach(b => { if (b !== btn) { b.classList.add('wrong'); b.style.opacity = '0.7'; } });
+      }, 400);
+    }
+
+    if (slideIdx === 2) {
+      btn.classList.add('wrong');
+      react.textContent = "It's listening to your voice ❤️";
+      setTimeout(() => {
+        allBtns.forEach(b => { if (b !== btn) { b.classList.add('wrong'); b.style.opacity = '0.7'; } });
+      }, 400);
+    }
+
+    const nextBtn = document.getElementById(`next-${slideIdx}`);
+    if (nextBtn) { setTimeout(() => nextBtn.classList.add('show'), 800); }
+  }
+
+  function nextSlide() {
+    startMusic();
+    if (current >= slides.length - 1) return;
+    slides[current].classList.remove('active');
+    dots[current].classList.remove('active');
+    current++;
+    slides[current].classList.add('active');
+    dots[current].classList.add('active');
+    if (current === 5) activateNoButton();
+  }
+
+  function goToSlide(idx) {
+    startMusic();
+    slides[current].classList.remove('active');
+    dots[current].classList.remove('active');
+    current = idx;
+    slides[current].classList.add('active');
+    if (dots[current]) dots[current].classList.add('active');
+    if (current === 5) activateNoButton();
+  }
+
+  function yesClicked() {
+    document.getElementById('dotsContainer').style.display = 'none';
+    const noBtn = document.getElementById('valNo');
+    if (noBtn) noBtn.style.display = 'none';
+
+    document.body.innerHTML = `
+      <div style="
+        height:100vh; display:flex; flex-direction:column; justify-content:center;
+        align-items:center; background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+        color:white; text-align:center; font-family: Poppins, sans-serif;
+        position:relative; overflow:hidden;">
+        <h1 style="font-size:2.5rem; margin-bottom:10px;">YAYYY 💕🥰</h1>
+        <p style="font-size:1.2rem;">Best Valentine ever 💘</p>
+        <p style="font-size:1rem; margin-top:15px; opacity:0.85;">I knew you'd say yes 😏💖</p>
+      </div>
+    `;
+    setInterval(() => {
+      const heart = document.createElement('div');
+      heart.className = 'heart-float';
+      heart.textContent = ['💖','💕','❤️','🥰','💘','✨'][Math.floor(Math.random()*6)];
+      heart.style.left = Math.random() * 100 + 'vw';
+      heart.style.top = '100vh';
+      document.body.appendChild(heart);
+      setTimeout(() => heart.remove(), 3000);
+    }, 300);
+  }
+
+  music.addEventListener('error', () => {
+    console.error('Audio failed to load. Make sure audio.mp3 is in the same folder.');
+  });
+</script>
+
+</body>
+</html>
